@@ -29,7 +29,14 @@
 </head>
 
 <body>
-    <div id="info">Road Component Test Environment</div>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+            }
+        }
+    </script>
     <script type="module" src="./road-test.js"></script>
 </body>
 

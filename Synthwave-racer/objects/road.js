@@ -1,17 +1,57 @@
 import * as THREE from 'https://unpkg.com/three@0.160.1/build/three.module.js';
-import { ROAD_LENGTH, ROAD_SPEED } from '../utils/constants.js';
+import { ROAD_LENGTH, ROAD_SPEED, ROAD_WIDTH } from '../utils/constants.js';
+
 
 let roadMesh;
+let uniforms;
 
 export function createRoad(scene) {
     const visualLength = ROAD_LENGTH * 3;
-    const geometry = new THREE.PlaneGeometry(20, visualLength, 20, 600);
 
-    const material = new THREE.MeshStandardMaterial({
-        color: 0x111111,
-        emissive: 0x00ffff,
-        emissiveIntensity: 0.5,
-        wireframe: true
+    const geometry = new THREE.PlaneGeometry(
+        ROAD_WIDTH,
+        visualLength,
+        1,
+        1
+    );
+
+    uniforms = {
+        time: { value: 0 }
+    };
+
+    const material = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            varying vec2 vUv;
+            uniform float time;
+
+            void main() {
+                vec2 uv = vUv;
+
+                uv.y += time * ${ROAD_SPEED.toFixed(2)};
+
+                vec3 color = vec3(0.04, 0.01, 0.04);
+
+                // Center dashed line
+                float center = step(0.495, uv.x) * step(uv.x, 0.505);
+                float dash = step(0.6, fract(uv.y * 10.0));
+                color += center * dash * vec3(1.2, 3.5, 6.0);
+
+                // Side neon lines
+                float left  = step(0.02, uv.x) * step(uv.x, 0.04);
+                float right = step(0.96, uv.x) * step(uv.x, 0.98);
+                color += (left + right) * vec3(1.2, 3.5, 6.0);
+
+                gl_FragColor = vec4(color, 1.0);
+            }
+        `
     });
 
     roadMesh = new THREE.Mesh(geometry, material);
@@ -23,6 +63,9 @@ export function createRoad(scene) {
 
 export function updateRoad(time) {
     if (!roadMesh) return;
+
     const offset = (time * ROAD_SPEED) % ROAD_LENGTH;
     roadMesh.position.z = -ROAD_LENGTH + offset;
+
+    uniforms.time.value = time;
 }
