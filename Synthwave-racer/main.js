@@ -47,7 +47,7 @@ function animate() {
 
     // Update all objects
     updateRoad(time);
-    updateCar(time);
+    updateCar(time, delta);
     updateMountains(time);
     updateSun(time);
     updateSkybox(time);
