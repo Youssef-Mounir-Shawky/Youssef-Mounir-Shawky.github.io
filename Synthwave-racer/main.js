@@ -6,7 +6,7 @@ import { createComposer } from './core/composer.js';
 import { getTime, updateClock, getDelta } from './core/clock.js';
 
 import { createRoad, updateRoad } from './objects/road.js';
-import { createCar, updateCar, getCarPosition, getCarSpeed } from './objects/car.js';
+import { createCar, updateCar, getCarPosition } from './objects/car.js';
 import { createMountains, updateMountains } from './objects/mountains.js';
 import { createSun, updateSun } from './objects/sun.js';
 import { createSkybox, updateSkybox } from './objects/sky.js';
@@ -17,7 +17,6 @@ import { setupLights } from './effects/lights.js';
 import { setupFog } from './effects/fog.js';
 import { updateCamera } from './animation/cameraFollow.js';
 
-import { CarSound } from './audio/carSound.js';
 
 // ======================
 // INITIALIZATION
@@ -27,7 +26,6 @@ const camera = createCamera();
 const renderer = createRenderer();
 const composer = createComposer(renderer, scene, camera);
 
-const carSound = new CarSound(camera);
 
 // ======================
 // SCENE CONTENT
@@ -65,9 +63,7 @@ function animate() {
     const carPos = getCarPosition();
     updateCamera(camera, carPos, time);
 
-    // Update car sound based on speed
-    const speed = Math.abs(getCarSpeed());
-    carSound.update(speed);
+   
 
     // Render frame using composer (for post-processing effects)
     composer.render();
