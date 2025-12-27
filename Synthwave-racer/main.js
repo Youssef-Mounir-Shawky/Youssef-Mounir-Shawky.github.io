@@ -12,6 +12,7 @@ import { createMountains, updateMountains } from './objects/mountains.js';
 import { createSun, updateSun } from './objects/sun.js';
 import { createSkybox, updateSkybox } from './objects/sky.js';
 import { createFlock, updateFlock } from './objects/flock.js';
+import { createWater, updateWater } from './objects/water.js';
 
 // Effect & animation imports
 import { setupLights } from './effects/lights.js';
@@ -28,6 +29,7 @@ const renderer = createRenderer();
 createRoad(scene);
 createCar(scene);
 createMountains(scene);
+createWater(scene);
 createSun(scene);
 createSkybox(scene);
 createFlock(scene, 20); // Add a flock of 20 storks
@@ -47,6 +49,7 @@ function animate() {
     updateSun(time);
     updateSkybox(time);
     updateFlock(getDelta(), time);
+    updateWater(time);
 
     // Update camera based on car position
     const carPos = getCarPosition();
