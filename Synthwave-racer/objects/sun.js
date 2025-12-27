@@ -10,7 +10,8 @@ let sunUniforms = null;
 export function createSun(scene) {
     sceneRef = scene;
 
-    const sunGeometry = new THREE.SphereGeometry(22, 64, 64);
+    // Increased radius from 60 to 80
+    const sunGeometry = new THREE.SphereGeometry(80, 64, 64);
 
     sunUniforms = {
         time: { value: 0 }
@@ -113,7 +114,8 @@ function updatePulses(time) {
 
         if (elapsed < duration) {
             const p = elapsed / duration;
-            const size = 18 + (120 - 18) * p;
+            // Adjusted size range for larger sun: starts at 75 (just inside) expands to 300
+            const size = 75 + (300 - 75) * p;
 
             pulse.scale.set(size, size, size);
 
