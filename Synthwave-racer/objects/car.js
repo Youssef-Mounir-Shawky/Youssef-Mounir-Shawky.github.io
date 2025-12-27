@@ -26,6 +26,8 @@ export function createCar(scene) {
     loader.load('./models/car.glb', (gltf) => {
         const loadedCar = gltf.scene;
         carMesh.scale.set(2, 2, 2);
+         loadedCar.rotation.set(0, Math.PI, 0); 
+
 
 
         // Clear any existing children (e.g., from placeholder)
