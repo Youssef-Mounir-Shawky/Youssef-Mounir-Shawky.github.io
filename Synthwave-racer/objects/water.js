@@ -24,7 +24,8 @@ export function createWater(scene) {
     }
   );
 
-  // Left water plane - optimized for synthwave aesthetic
+  // Left water plane removed to make room for grass area
+  /*
   waterLeft = new Water(waterGeometry, {
     textureWidth: 1024,
     textureHeight: 1024,
@@ -42,7 +43,8 @@ export function createWater(scene) {
   waterLeft.position.x = -waterOffset - waterWidth / 2;
   waterLeft.position.y = -1.0; // Below road level
   waterLeft.position.z = -ROAD_LENGTH;
-
+  scene.add(waterLeft);
+  */
   // Right water plane
   waterRight = new Water(waterGeometry.clone(), {
     textureWidth: 1024,
@@ -70,13 +72,13 @@ export function updateWater(time) {
   if (!waterLeft || !waterRight) return;
 
   // Slower water animation for calmer, dreamy effect
-  waterLeft.material.uniforms['time'].value = time * 0.3;
-  waterRight.material.uniforms['time'].value = time * 0.3;
+  // if (waterLeft) waterLeft.material.uniforms['time'].value = time * 0.3;
+  if (waterRight) waterRight.material.uniforms['time'].value = time * 0.3;
 
   // Translate water in sync with road
   const offset = (time * ROAD_SPEED) % ROAD_LENGTH;
   const zPosition = -ROAD_LENGTH + offset;
-  
-  waterLeft.position.z = zPosition;
+
+  // if (waterLeft) waterLeft.position.z = zPosition;
   waterRight.position.z = zPosition;
 }
