@@ -2,15 +2,14 @@ import * as THREE from 'three';
 import { ROAD_WIDTH, ROAD_SPEED, ROAD_LENGTH } from '../utils/constants.js';
 import { Water } from 'https://unpkg.com/three@0.160.1/examples/jsm/objects/Water.js';
 
-
 let waterLeft;
 let waterRight;
 
 export function createWater(scene) {
   // Water extends far on both sides
-  const waterWidth = 150;
+  const waterWidth = 200;
   const waterLength = 1000;
-  const waterOffset = ROAD_WIDTH / 2 + 1; // Close to road edge
+  const waterOffset = (ROAD_WIDTH / 2 + 1 )-4; // Close to road edge
 
   // Create water geometry
   const waterGeometry = new THREE.PlaneGeometry(waterWidth, waterLength, 1, 1);
@@ -30,29 +29,30 @@ export function createWater(scene) {
     textureWidth: 1024,
     textureHeight: 1024,
     waterNormals: waterNormals,
-    sunDirection: new THREE.Vector3(0, 1, 0), // Sun directly above
-    sunColor: 0xff00ff, // Magenta sun for synthwave
-    waterColor: 0x001e3f, // Deep blue-purple
-    distortionScale: 2.5, // Subtle ripples
+    sunDirection: new THREE.Vector3(0, 1, 0),
+    sunColor: 0xff00ff,
+    waterColor: 0x001e3f,
+    distortionScale: 2.5,
     fog: scene.fog !== undefined,
     side: THREE.DoubleSide,
-    alpha: 0.95 // Slightly transparent for depth
+    alpha: 0.95
   });
 
   waterLeft.rotation.x = -Math.PI / 2;
   waterLeft.position.x = -waterOffset - waterWidth / 2;
-  waterLeft.position.y = -1.0; // Below road level
+  waterLeft.position.y = -1.0;
   waterLeft.position.z = -ROAD_LENGTH;
   scene.add(waterLeft);
   */
+ 
   // Right water plane
   waterRight = new Water(waterGeometry.clone(), {
     textureWidth: 1024,
     textureHeight: 1024,
     waterNormals: waterNormals,
     sunDirection: new THREE.Vector3(0, 1, 0),
-    sunColor: 0xff00ff, // Magenta sun for synthwave
-    waterColor: 0x001e3f, // Deep blue-purple
+    sunColor: 0xff00ff,
+    waterColor: 0x001e3f,
     distortionScale: 2.5,
     fog: scene.fog !== undefined,
     side: THREE.DoubleSide,
@@ -64,21 +64,20 @@ export function createWater(scene) {
   waterRight.position.y = -1.0;
   waterRight.position.z = -ROAD_LENGTH;
 
-  scene.add(waterLeft);
-  scene.add(waterRight);
+  // Only add waterRight since waterLeft is commented out
+  scene.add(waterRight); // Removed waterLeft from here
 }
 
 export function updateWater(time) {
-  if (!waterLeft || !waterRight) return;
+  // Check if waterRight exists before updating
+  if (!waterRight) return;
 
   // Slower water animation for calmer, dreamy effect
-  // if (waterLeft) waterLeft.material.uniforms['time'].value = time * 0.3;
-  if (waterRight) waterRight.material.uniforms['time'].value = time * 0.3;
+  waterRight.material.uniforms['time'].value = time * 0.5;
 
   // Translate water in sync with road
-  const offset = (time * ROAD_SPEED) % ROAD_LENGTH;
+  const offset = (time * ROAD_SPEED * 1000) % ROAD_LENGTH; // Added * 1000 for proper speed
   const zPosition = -ROAD_LENGTH + offset;
 
-  // if (waterLeft) waterLeft.position.z = zPosition;
   waterRight.position.z = zPosition;
 }
