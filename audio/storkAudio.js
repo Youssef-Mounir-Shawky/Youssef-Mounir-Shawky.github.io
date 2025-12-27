@@ -33,7 +33,7 @@ function applyBufferToSound(sound, buffer) {
     sound.setBuffer(buffer);
     sound.setRefDistance(10);
     sound.setLoop(true);
-    sound.setVolume(0.1);
+    sound.setVolume(0.04);
 }
 
 export { isLoaded };

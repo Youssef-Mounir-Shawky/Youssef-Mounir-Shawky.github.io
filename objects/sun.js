@@ -37,18 +37,16 @@ export function createSun(scene) {
 
             void main() {
                 // === BASE COLOR (SOLID SUN) ===
-                // Changed to a deep blue/cyan to match road
                 vec3 baseColor = vec3(0.0, 0.2, 0.5); 
 
                 // === STRONG FRESNEL (NEON EDGE) ===
                 float fresnel = 1.0 - max(dot(vNormal, vViewDir), 0.0);
-                fresnel = pow(fresnel, 4.0); // MUCH sharper edge
+                fresnel = pow(fresnel, 4.0);
 
                 // === NEON PULSE (ROAD-STYLE) ===
                 float pulse = 0.9 + 0.1 * sin(time * 2.5);
 
                 // === OVERDRIVEN NEON COLOR ===
-                // Using the specific road neon values: vec3(1.2, 3.5, 6.0)
                 vec3 neonColor = vec3(1.2, 3.5, 6.0); 
 
                 // === COMBINE ===

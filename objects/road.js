@@ -20,17 +20,21 @@ export function createRoad(scene) {
     };
 
     const material = new THREE.ShaderMaterial({
-        uniforms,
+        uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib['fog'], uniforms]),
         vertexShader: `
             varying vec2 vUv;
+            #include <fog_pars_vertex>
             void main() {
                 vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_Position = projectionMatrix * mvPosition;
+                #include <fog_vertex>
             }
         `,
         fragmentShader: `
             varying vec2 vUv;
             uniform float time;
+            #include <fog_pars_fragment>
 
             void main() {
                 vec2 uv = vUv;
@@ -49,26 +53,31 @@ export function createRoad(scene) {
                 color += (left + right) * vec3(1.2, 3.5, 6.0);
 
                 gl_FragColor = vec4(color, 1.0);
+                #include <fog_fragment>
             }
         `,
+        fog: true,
         transparent: false
     });
 
     roadMesh = new THREE.Mesh(geometry, material);
     roadMesh.rotation.x = -Math.PI / 2;
     roadMesh.position.z = -ROAD_LENGTH;
-    
+
     scene.add(roadMesh);
 
     const groundGeometry = new THREE.PlaneGeometry(ROAD_WIDTH + 5, 2000);
-    const groundMaterial = new THREE.ShadowMaterial({ 
+    const groundMaterial = new THREE.ShadowMaterial({
         opacity: 0.5
     });
-    
+
     const groundPlane = new THREE.Mesh(groundGeometry, groundMaterial);
     groundPlane.rotation.x = -Math.PI / 2;
+        groundPlane.position.y = 0.01;
+
     groundPlane.receiveShadow = true;
-    
+
+
     scene.add(groundPlane);
 }
 

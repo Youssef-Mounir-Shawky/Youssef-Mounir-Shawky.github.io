@@ -52,8 +52,11 @@ export function stopEngine() {
 
 export function updateEnginePitch(speed) {
     if (engineSound && isLoaded) {
-        // Modulate pitch based on speed (example logic)
-        const pitch = 0.8 + speed * 0.5;
-        engineSound.setPlaybackRate(pitch);
+        // Modulate pitch based on speed
+        // Speed is around 80. Normalize to range ~0-1 for pitch calculation.
+        // Old formula: 0.8 + speed * 0.5 (was assuming speed < 1)
+        // New formula: 0.8 + (speed * 0.012) -> at 80, 0.8 + 0.96 = 1.76
+        const pitch = 0.8 + speed * 0.012;
+        engineSound.setPlaybackRate(Math.min(pitch, 2.5)); // Cap at 2.5x
     }
 }

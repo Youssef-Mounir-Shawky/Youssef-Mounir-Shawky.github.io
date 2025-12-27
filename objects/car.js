@@ -10,11 +10,13 @@
  * - Added keyboard controls for left/right movement (A/D keys)
  * - Added shadow casting and receiving
  * 
- * Note: GLTFLoader uses CDN URL — valid for browser modules.
+ * Note: GLTFLoader still uses CDN URL – that's OK because it's not part of core Three.js.
+ * 
  */
 
 import * as THREE from 'three';
-import { GLTFLoader } from 'https://unpkg.com/three@0.160.1/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { ROAD_SPEED } from '../utils/constants.js';
 
 // Placeholder always exists at origin (0,0,0)
 let carMesh = new THREE.Object3D();
@@ -23,9 +25,9 @@ let wheels = [];
 
 // Movement variables
 let targetX = 0;
-const moveSpeed = 0.5;
-const lerpSpeed = 5;
-const maxX = 5;
+const moveSpeed = 0.5; // Units per key press
+const lerpSpeed = 5; // Smoothness of movement
+const maxX = 5; // Maximum distance left/right from center
 const minX = -5;
 
 // Keyboard state
@@ -34,7 +36,7 @@ const keys = {
     d: false
 };
 
-// Only A/D key listeners — no debug spam
+// Set up keyboard listeners
 window.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
     if (key === 'a' || key === 'd') {
@@ -50,26 +52,29 @@ window.addEventListener('keyup', (e) => {
 });
 
 export function createCar(scene) {
-    scene.add(carMesh);
+    scene.add(carMesh); // Add placeholder immediately
 
     const loader = new GLTFLoader();
     loader.load('./models/car.glb', (gltf) => {
         const loadedCar = gltf.scene;
-        carMesh.scale.set(2, 2, 2);
+        carMesh.scale.set(3, 3, 3);
         loadedCar.rotation.set(0, Math.PI, 0);
 
-        // Clear placeholder children
+        // Clear any existing children (e.g., from placeholder)
         while (carMesh.children.length > 0) {
             carMesh.remove(carMesh.children[0]);
         }
 
+        // Add loaded model as child
         carMesh.add(loadedCar);
 
-        // Enable shadows and collect wheels
+        // Enable shadows for all meshes in the car
         loadedCar.traverse(child => {
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
+
+                // Find wheel meshes for animation
                 if (child.name.toLowerCase().includes('wheel')) {
                     wheels.push(child);
                 }
@@ -81,20 +86,31 @@ export function createCar(scene) {
 }
 
 export function updateCar(time, delta) {
-    // Handle A/D input
-    if (keys.a) targetX -= moveSpeed * delta * 10;
-    if (keys.d) targetX += moveSpeed * delta * 10;
+    // Handle keyboard input
+    if (keys.a) {
+        targetX -= moveSpeed * delta * 10; // Scale by delta for frame-rate independence
+    }
+    if (keys.d) {
+        targetX += moveSpeed * delta * 10;
+    }
+    // Test keyboard
+    window.addEventListener('keydown', (e) => {
+        console.log('Key pressed:', e.key);
+    });
 
-    // Clamp and lerp position
+    // Clamp target position
     targetX = Math.max(minX, Math.min(maxX, targetX));
+
+    // Smoothly interpolate to target position
     carMesh.position.x += (targetX - carMesh.position.x) * lerpSpeed * delta;
 
-    // Animate wheels
+    // Rotate wheels based on global time for smooth sync
     wheels.forEach(wheel => {
-        wheel.rotation.x = time * 20;
+        wheel.rotation.x = time * ROAD_SPEED * 0.5; // Adjust speed factor as needed
     });
 }
 
 export function getCarPosition() {
+    // Always returns a valid Vector3 – never null
     return carMesh.position.clone();
 }

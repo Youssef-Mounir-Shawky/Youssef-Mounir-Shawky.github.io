@@ -1,62 +1,78 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { ROAD_SPEED } from '../utils/constants.js';
 
-let mountainGroup;
+let mountainInstances = [];
+const MOUNTAIN_Z_RANGE = 4000; // Much larger range for more depth
+const MOUNTAIN_COUNT = 15;
+const MOUNTAIN_SPACING = MOUNTAIN_Z_RANGE / MOUNTAIN_COUNT;
+const MOUNTAIN_X = -100; // Farther left to avoid road overlap (Road ends at -10)
 
 export function createMountains(scene) {
-  mountainGroup = new THREE.Group();
+  const loader = new GLTFLoader();
+  const modelPath = new URL('../models/mountain.glb', import.meta.url).href;
 
-  const geometry = new THREE.ConeGeometry(6, 18, 6, 1);
+  for (let i = 0; i < MOUNTAIN_COUNT; i++) {
+    loader.load(modelPath, (gltf) => {
+      const mtn = gltf.scene;
 
-  const solidMaterial = new THREE.MeshStandardMaterial({
-    color: 0x120022,
-    roughness: 0.8,
-    metalness: 0.1,
-    flatShading: true
-  });
+      // Calculate bounding box once to see how small/big it is
+      if (i === 0) {
+        const box = new THREE.Box3().setFromObject(mtn);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        console.log("Original mountain model size:", size);
+      }
 
-  const wireMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff00ff,
-    emissive: 0xff00ff,
-    emissiveIntensity: 1.2,
-    wireframe: true
-  });
+      // Uniform scale
+      const scale = 300;
+      mtn.scale.set(scale, scale, scale);
 
-  function createMountain(x, z) {
-    const mountain = new THREE.Group();
+      // Use the user-found rotation: -17.2 degrees is perpendicular to Z (blue)
+      // Since road is along Z, we add/subtract 90 degrees to face the road (X)
+      const userDegrees = -17.2;
+      const finalDegrees = userDegrees + 90; // Rotate to face the road
+      mtn.rotation.y = finalDegrees * Math.PI / 180;
 
-    // Solid core
-    const solid = new THREE.Mesh(geometry, solidMaterial);
-    mountain.add(solid);
+      // Initial position - spread them out along Z
+      const startZ = -i * MOUNTAIN_SPACING;
+      // Fixed X position for a straight line
+      mtn.position.set(MOUNTAIN_X, 20, startZ);
 
-    // Glowing edges
-    const wire = new THREE.Mesh(geometry, wireMaterial);
-    wire.scale.multiplyScalar(1.01); 
-    mountain.add(wire);
+      // Enable shadow casting
+      mtn.traverse(child => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
 
-    mountain.position.set(x, 0, z);
+      scene.add(mtn);
 
-    mountain.scale.y = 0.8 + Math.random() * 0.8;
-
-    mountain.rotation.y = Math.random() * Math.PI;
-
-    return mountain;
+      // Store initial state for scrolling
+      mountainInstances.push({
+        mesh: mtn,
+        startZ: startZ
+      });
+    }, undefined, (err) => console.error("Error loading mountain GLB:", err));
   }
-
-  const xOffsets = [-75, -55, -35, 35, 55, 75];
-
-  for (let x of xOffsets) {
-    for (let i = 0; i < 8; i++) {
-      mountainGroup.add(createMountain(x, -i * 25));
-    }
-  }
-
-  scene.add(mountainGroup);
 }
 
 export function updateMountains(time) {
-  if (!mountainGroup) return;
+  // Sync scrolling with road speed
+  const speed = ROAD_SPEED * 0.3;
 
-  mountainGroup.children.forEach((mountain, index) => {
-    mountain.position.y = Math.sin(time * 1.2 + index) * 1.0;
+  mountainInstances.forEach(mtnObj => {
+    const mtn = mtnObj.mesh;
+
+    // Calculate raw Z based on initial offset and time
+    let newZ = mtnObj.startZ + (time * speed);
+
+    // Proper wrap-around logic for infinite scrolling
+    const range = MOUNTAIN_Z_RANGE;
+    const threshold = 500; // Wrap point well behind the camera
+
+    const relativeZ = ((newZ % range) + range) % range;
+    mtn.position.z = relativeZ - (range - threshold);
   });
 }

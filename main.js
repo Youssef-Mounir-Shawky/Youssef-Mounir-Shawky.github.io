@@ -1,5 +1,6 @@
-﻿// Main imports
+// main.js
 import { createScene } from './core/scene.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCamera } from './core/camera.js';
 import { createRenderer } from './core/renderer.js';
 import { createComposer } from './core/composer.js';
@@ -16,10 +17,10 @@ import { createWater, updateWater } from './objects/water.js';
 import { setupLights } from './effects/lights.js';
 import { setupFog } from './effects/fog.js';
 import { updateCamera } from './animation/cameraFollow.js';
-import { setupCarAudio, startEngine } from './audio/carAudio.js';
+import { setupCarAudio, startEngine, updateEnginePitch } from './audio/carAudio.js';
+import { setupMusic, playMusic } from './audio/music.js';
+import { ROAD_SPEED } from './utils/constants.js';
 
-// Import clean timer UI
-import { initClockUI, updateClockUI } from './utils/clockUI.js';
 
 // Initialize core systems
 const scene = createScene();
@@ -27,10 +28,33 @@ const camera = createCamera();
 const renderer = createRenderer();
 const composer = createComposer(renderer, scene, camera);
 
-// Init timer (now reliable)
-initClockUI();
+// Free Cam Setup
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enabled = false; // Start disabled (Follow mode default)
 
-// Scene setup
+let isFreeCam = false;
+
+window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'c') {
+        isFreeCam = !isFreeCam;
+        controls.enabled = isFreeCam;
+
+        if (isFreeCam) {
+            console.log("Free Cam Enabled");
+        } else {
+            console.log("Follow Cam Enabled");
+            // Reset camera to a reasonable follow angle might be needed, 
+            // but updateCamera usually snaps it back quickly.
+        }
+    }
+});
+
+// Setup fog before objects so Water can detect it
+setupFog(scene);
+
+// Set up scene content
 createRoad(scene);
 createCar(scene);
 createMountains(scene);
@@ -38,36 +62,60 @@ createWater(scene);
 createSun(scene);
 createSkybox(scene);
 setupLights(scene);
-setupFog(scene);
 
-// Audio
+// Audio Setup (Requires camera and car object)
+// Note: createCar adds a placeholder carMesh immediately, named 'carObject'.
 const { engineSound, listener } = setupCarAudio(camera, scene.getObjectByName('carObject') || scene);
+setupMusic(listener);
+
+// Initialize Flock with listener for positional birds sound
 createFlock(scene, 20, listener);
 
-// Animation loop
+let audioContextStarted = false;
+
+// ======================
+// ANIMATION LOOP
+// ======================
 function animate() {
     requestAnimationFrame(animate);
 
     const delta = updateClock();
     const time = getTime();
 
+    // Update all objects
     updateRoad(time);
     updateCar(time, delta);
     updateMountains(time);
+
+    // Dynamic engine pitch (use a base speed + vertical sway or fake speed)
+    updateEnginePitch(ROAD_SPEED);
+
     updateSun(time);
     updateSkybox(time);
     updateFlock(delta, time);
     updateWater(time);
 
-    const carPos = getCarPosition();
-    updateCamera(camera, carPos, time);
-    updateClockUI();
+    // Update camera based on car position
+    if (isFreeCam) {
+        controls.update();
+    } else {
+        const carPos = getCarPosition();
+        updateCamera(camera, carPos, time);
+    }
 
+
+
+    // Render frame using composer (for post-processing effects)
     composer.render();
 }
+
+// Start animation
 animate();
 
-// Resize handling
+// ======================
+// EVENTS
+// ======================
+// Handle window resize
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -75,12 +123,18 @@ window.addEventListener('resize', () => {
     composer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Audio resume + pointer lock on click
-window.addEventListener('click', async () => {
-    // Resume audio
-    if (listener?.context?.state === 'suspended') {
-        await listener.context.resume().catch(e => console.error("Audio resume failed:", e));
-        console.log("AudioContext resumed.");
+async function initAudio() {
+    if (listener && listener.context && !audioContextStarted) {
+        const ctx = listener.context;
+        if (ctx.state === 'suspended') {
+            await ctx.resume().catch(e => console.error("Failed to resume AudioContext:", e));
+            console.log("AudioContext resumed.");
+        }
+        startEngine();
+        playMusic();
+        audioContextStarted = true;
     }
-    startEngine();
-});
+}
+
+window.addEventListener('click', initAudio);
+window.addEventListener('keydown', initAudio);

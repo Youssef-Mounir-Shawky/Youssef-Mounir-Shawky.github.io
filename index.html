@@ -18,14 +18,17 @@
     </style>
 
     <!--
-    
+      - Fixed import map URL: removed trailing space that caused module resolution errors
+      - All JS files must now use: `import * as THREE from 'three';`
+      - Loaders (like GLTFLoader) can still use full CDN URLs
+      - Works in all modern browsers via CDN (no local install needed)
     -->
     <script type="importmap">
         {
-          "imports": {
-            "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
-          }
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+            }
         }
     </script>
 </head>
