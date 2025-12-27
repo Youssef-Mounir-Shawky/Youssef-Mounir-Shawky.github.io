@@ -17,6 +17,7 @@ import { setupLights } from './effects/lights.js';
 import { setupFog } from './effects/fog.js';
 import { updateCamera } from './animation/cameraFollow.js';
 import { setupCarAudio, startEngine, updateEnginePitch } from './audio/carAudio.js';
+import { setupMusic, playMusic } from './audio/music.js';
 import { ROAD_SPEED } from './utils/constants.js';
 
 
@@ -41,6 +42,7 @@ setupLights(scene);
 // Audio Setup (Requires camera and car object)
 // Note: createCar adds a placeholder carMesh immediately, named 'carObject'.
 const { engineSound, listener } = setupCarAudio(camera, scene.getObjectByName('carObject') || scene);
+setupMusic(listener);
 
 // Initialize Flock with listener for positional birds sound
 createFlock(scene, 20, listener);
@@ -101,6 +103,7 @@ async function initAudio() {
             console.log("AudioContext resumed.");
         }
         startEngine();
+        playMusic();
         audioContextStarted = true;
     }
 }
