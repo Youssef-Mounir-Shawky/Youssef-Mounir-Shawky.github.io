@@ -1,15 +1,3 @@
-/**
- *  
- * 
- * Fixes applied:
- * - Changed Three.js import to `from 'three'` (was using full CDN URL with spaces)
- * - Ensures consistent module resolution across all files
- * - Matches the import map defined in index.html
- * 
- * This prevents "Failed to resolve module specifier" errors in browser.
- * 
- */
-
 // objects/road.js
 import * as THREE from 'three';
 import { ROAD_LENGTH, ROAD_SPEED, ROAD_WIDTH } from '../utils/constants.js';
