@@ -8,7 +8,7 @@
  * - Wheels rotate using global `time` (not deltaTime) for smooth, deterministic animation
  * - Model path is now relative: `./models/car.glb` (no leading slash)
  * 
- * Note: GLTFLoader still uses CDN URL — that’s OK because it’s not part of core Three.js.
+ * Note: GLTFLoader still uses CDN URL ï¿½ thatï¿½s OK because itï¿½s not part of core Three.js.
  * 
  */
 
@@ -25,6 +25,8 @@ export function createCar(scene) {
     const loader = new GLTFLoader();
     loader.load('./models/car.glb', (gltf) => {
         const loadedCar = gltf.scene;
+        carMesh.scale.set(2, 2, 2);
+
 
         // Clear any existing children (e.g., from placeholder)
         while (carMesh.children.length > 0) {
@@ -54,6 +56,6 @@ export function updateCar(time) {
 }
 
 export function getCarPosition() {
-    // Always returns a valid Vector3 — never null
+    // Always returns a valid Vector3 ï¿½ never null
     return carMesh.position.clone();
 }
