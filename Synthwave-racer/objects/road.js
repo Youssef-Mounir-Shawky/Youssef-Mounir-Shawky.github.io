@@ -68,6 +68,7 @@ export function createRoad(scene) {
     roadMesh = new THREE.Mesh(geometry, material);
     roadMesh.rotation.x = -Math.PI / 2;
     roadMesh.position.z = -ROAD_LENGTH;
+    roadMesh.receiveShadow = true;
     scene.add(roadMesh);
 }
 
