@@ -16,6 +16,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { ROAD_SPEED } from '../utils/constants.js';
 
 // Placeholder always exists at origin (0,0,0)
 let carMesh = new THREE.Object3D();
@@ -105,7 +106,7 @@ export function updateCar(time, delta) {
 
     // Rotate wheels based on global time for smooth sync
     wheels.forEach(wheel => {
-        wheel.rotation.x = time * 20; // Adjust speed factor as needed
+        wheel.rotation.x = time * ROAD_SPEED * 0.5; // Adjust speed factor as needed
     });
 }
 

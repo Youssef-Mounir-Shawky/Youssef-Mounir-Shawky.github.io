@@ -60,7 +60,7 @@ export function createMountains(scene) {
 
 export function updateMountains(time) {
   // Sync scrolling with road speed
-  const speed = ROAD_SPEED * 1000;
+  const speed = ROAD_SPEED * 0.3;
 
   mountainInstances.forEach(mtnObj => {
     const mtn = mtnObj.mesh;
