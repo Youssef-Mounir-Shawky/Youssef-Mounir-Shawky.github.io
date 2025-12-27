@@ -1,5 +1,6 @@
 // main.js
 import { createScene } from './core/scene.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCamera } from './core/camera.js';
 import { createRenderer } from './core/renderer.js';
 import { createComposer } from './core/composer.js';
@@ -26,6 +27,29 @@ const scene = createScene();
 const camera = createCamera();
 const renderer = createRenderer();
 const composer = createComposer(renderer, scene, camera);
+
+// Free Cam Setup
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enabled = false; // Start disabled (Follow mode default)
+
+let isFreeCam = false;
+
+window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'c') {
+        isFreeCam = !isFreeCam;
+        controls.enabled = isFreeCam;
+
+        if (isFreeCam) {
+            console.log("Free Cam Enabled");
+        } else {
+            console.log("Follow Cam Enabled");
+            // Reset camera to a reasonable follow angle might be needed, 
+            // but updateCamera usually snaps it back quickly.
+        }
+    }
+});
 
 // Setup fog before objects so Water can detect it
 setupFog(scene);
@@ -72,8 +96,12 @@ function animate() {
     updateWater(time);
 
     // Update camera based on car position
-    const carPos = getCarPosition();
-    updateCamera(camera, carPos, time);
+    if (isFreeCam) {
+        controls.update();
+    } else {
+        const carPos = getCarPosition();
+        updateCamera(camera, carPos, time);
+    }
 
 
 
